@@ -5,23 +5,31 @@ import mongoose from 'mongoose';
 import {typeDefs} from "./typeDefs";
 import {resolvers} from "./resolvers";
 
-// import { typeDefs, resolvers } from './schema';
 
-const app = express();
-mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true, useUnifiedTopology: true});
+const startServer = async () => {
 
-const Cat = mongoose.model('Cat', { name: String });
+    const app = express();
 
-const kitty = new Cat({ name: 'Zildjian' });
-kitty.save().then(() => console.log('meow'));
+    const server = new ApolloServer({
+        typeDefs,
+        resolvers,
+    });
 
-const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-});
+    server.applyMiddleware({ app });
 
-server.applyMiddleware({ app });
+    const mongoUri = 'mongodb+srv://admin:A1A2A3A4@cluster0-mdmyn.mongodb.net/test?retryWrites=true&w=majority';
+    await mongoose.connect(mongoUri, {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true}).catch(error => console.log(error));
 
-app.listen({ port: 4000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
-);
+    mongoose.connection.on('connected', () => {
+        console.log('Connected to mongo instance');
+    });
+    mongoose.connection.on('error', (err) => {
+        console.log('Error connecting to mongo', err);
+    });
+
+    app.listen({ port: 4000 }, () =>
+        console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
+    );
+};
+
+startServer();
