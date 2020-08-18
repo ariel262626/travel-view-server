@@ -3,6 +3,7 @@ import {TravelPoint} from "./models/TravelPoint";
 export const resolvers = {
     Query: {
         hello: () => 'helloA',
+        travelPoints: () => TravelPoint.find()
     },
     Mutation: {
         createTravelPoint: async(_, {name, type, lat, lng}) => {
